@@ -3,19 +3,12 @@ classDiagram
     class Station {
         -List~Module~ modules
         -int maxModules
-        +Station(int maxModules)
-        +Station(Station other)
-        +iterator() Iterator~Module~
-        +addModule(Module module)
-        +removeById(int id)
-        +removeByIndex(int index)
-        +findById(int id) Module
-        +getIndexById(int id) int
-        +moveModule(int fromIndex, int toIndex)
-        +copyFrom(Station other)
-        +transferModuleTo(int moduleId, Station target)
-        +transferFrom(Station other)
-        +sortByEfficiency()
+        +addModule(Module)
+        +removeById(int)
+        +moveModule(int, int)
+        +copyFrom(Station)
+        +transferFrom(Station)
+        +iterator()
     }
 
     class Module {
@@ -31,13 +24,19 @@ classDiagram
         +getType() String
         +activate()
         +deactivate()
-        +setState(String state)
-        +moveToIndex(Station station, int index)
     }
 
-    class ResidentialModule
-    class EnergyModule
-    class ResearchModule
+    class ResidentialModule {
+        <<abstract>>
+    }
+
+    class EnergyModule {
+        <<abstract>>
+    }
+
+    class ResearchModule {
+        <<abstract>>
+    }
 
     class CrewCabin
     class MedicalCabin
@@ -81,10 +80,11 @@ classDiagram
     ModuleFactory <|.. StandardModuleFactory
     ModuleFactory <|.. AdvancedModuleFactory
 
-    Station "1" o-- "0..*" Module : хранит
-    Module --> Durability : использует
-    Module --> EnergyConsumption : использует
-    Module --> Capacity : использует
-    Station ..> StationIterator : создаёт
-    StationIterator ..|> Iterator : реализует
+    Station "1" o-- "0..*" Module : stores
+    Module --> Durability : uses
+    Module --> EnergyConsumption : uses
+    Module --> Capacity : uses
+
+    Station ..> StationIterator : creates
+    StationIterator ..|> Iterator : implements
 ```
