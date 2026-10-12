@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     class Station {
         -List~Module~ modules
@@ -86,3 +87,4 @@ classDiagram
     Module --> Capacity : использует
     Station ..> StationIterator : создаёт
     StationIterator ..|> Iterator : реализует
+```
