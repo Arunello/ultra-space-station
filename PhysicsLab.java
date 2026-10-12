@@ -11,30 +11,9 @@ public class PhysicsLab extends ResearchModule {
         super(name, efficiency, state, durability, energyConsumption, capacity);
     }
 
-    public PhysicsLab(
-        int id,
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(
-            id,
-            name,
-            efficiency,
-            state,
-            durability,
-            energyConsumption,
-            capacity
-        );
-    }
-
     @Override
     public PhysicsLab clone() {
         return new PhysicsLab(
-            getId(),
             getName(),
             getEfficiency(),
             getState(),

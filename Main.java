@@ -42,24 +42,7 @@ public class Main {
         System.out.println("Сценарий 1");
 
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         Station copiedStation = new Station(station);
@@ -70,24 +53,7 @@ public class Main {
 
         System.out.println("Копия:");
         for (Module module : copiedStation) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         if (copyIterator.hasNext()) {
@@ -109,7 +75,7 @@ public class Main {
 
         for (Module module : copiedStation) {
             switch (module.getType()) {
-                case "Phisicslab":
+                case "PhysicsLab":
                     module.activate();
                     break;
                 case "SolarModule":
@@ -131,46 +97,12 @@ public class Main {
 
         System.out.println("\nОригинальная станция после изменения копии:");
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         System.out.println("\nИзменённая копия:");
         for (Module module : copiedStation) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
         System.out.println("\nСценарий 3");
 
@@ -179,45 +111,11 @@ public class Main {
         station.transferFrom(copiedStation);
 
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         for (Module module : copiedStation) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
         System.out.println("\nСценарий 4");
 
@@ -289,24 +187,7 @@ public class Main {
         System.out.println("\nСтанция после изменений:");
 
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         System.out.println("\nСценарий 5");
@@ -325,24 +206,7 @@ public class Main {
         System.out.println("\nСтанция после удаления по ID:");
 
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         System.out.println("\nУдаление модуля по индексу:");
@@ -361,24 +225,7 @@ public class Main {
         System.out.println("\nСтанция после удаления по индексу:");
 
         for (Module module : station) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
 
         System.out.println(
@@ -418,24 +265,28 @@ public class Main {
         System.out.println("\nСодержимое станции с ограничением:");
 
         for (Module module : limitedStation) {
-            System.out.println(
-                "ID: " +
-                    module.getId() +
-                    " | type: " +
-                    module.getType() +
-                    " | name: " +
-                    module.getName() +
-                    " | efficiency: " +
-                    module.getEfficiency() +
-                    " | state: " +
-                    module.getState() +
-                    " | durability: " +
-                    module.getDurability().getValue() +
-                    " | capacity: " +
-                    module.getCapacity().getValue() +
-                    " | energyConsumption: " +
-                    module.getEnergyConsumption().getValue()
-            );
+            printModule(module);
         }
+    }
+
+    private static void printModule(Module module) {
+        System.out.println(
+            "ID: " +
+                module.getId() +
+                " | type: " +
+                module.getType() +
+                " | name: " +
+                module.getName() +
+                " | efficiency: " +
+                module.getEfficiency() +
+                " | state: " +
+                module.getState() +
+                " | durability: " +
+                module.getDurability().getValue() +
+                " | capacity: " +
+                module.getCapacity().getValue() +
+                " | energyConsumption: " +
+                module.getEnergyConsumption().getValue()
+        );
     }
 }

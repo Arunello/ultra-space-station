@@ -54,48 +54,6 @@ public abstract class Module {
         this.capacity = capacity;
     }
 
-    public Module(
-        int id,
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be empty");
-        }
-        if (efficiency < MIN_EFFICIENCY || efficiency > MAX_EFFICIENCY) {
-            throw new IllegalArgumentException(
-                "Efficiency must be between MIN_EFFICIENCY and MAX_EFFICIENCY"
-            );
-        }
-        if (
-            !"включён".equals(state) &&
-            !"выключен".equals(state) &&
-            !"ремонт".equals(state) &&
-            !"авария".equals(state)
-        ) {
-            throw new IllegalArgumentException("Invalid state");
-        }
-        if (
-            durability == null || energyConsumption == null || capacity == null
-        ) {
-            throw new IllegalArgumentException(
-                "Module attributes cannot be null"
-            );
-        }
-
-        this.id = ++nextId;
-        this.name = name;
-        this.efficiency = efficiency;
-        this.state = state;
-        this.durability = durability;
-        this.energyConsumption = energyConsumption;
-        this.capacity = capacity;
-    }
-
     public abstract Module clone();
 
     public abstract String getType();
