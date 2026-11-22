@@ -1,14 +1,24 @@
 package station.objects;
 
 import station.core.CommandCenter;
+import station.logging.LoggingProxy;
 import station.modules.Module;
+import station.objects.strategy.ExternalObjectStrategy;
 
 public abstract class ExternalObject {
 
     private final String type;
     private final double strength;
 
-    protected ExternalObject(String type, double strength) {
+    private final String logName;
+    private final ExternalObjectStrategy strategy;
+
+    protected ExternalObject(
+        String type,
+        double strength,
+        String logName,
+        ExternalObjectStrategy strategy
+    ) {
         if (type == null || type.isBlank()) {
             throw new IllegalArgumentException("Type cannot be empty");
         }
@@ -17,6 +27,8 @@ public abstract class ExternalObject {
         }
         this.type = type;
         this.strength = strength;
+        this.logName = logName;
+        this.strategy = strategy;
     }
 
     public String getType() {
@@ -27,5 +39,11 @@ public abstract class ExternalObject {
         return strength;
     }
 
-    public abstract void interact(CommandCenter commandCenter, Module module);
+    public void interact(CommandCenter commandCenter, Module module) {
+        LoggingProxy.log(
+            LoggingProxy.Source.OBJECT,
+            logName + " воздействует на " + module.getName()
+        );
+        strategy.apply(commandCenter, module);
+    }
 }

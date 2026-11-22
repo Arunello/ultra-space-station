@@ -2,10 +2,7 @@ package station.objects.strategy;
 
 import station.core.CommandCenter;
 import station.modules.Damage;
-import station.modules.EnergyModule;
 import station.modules.Module;
-import station.modules.ResearchModule;
-import station.modules.ResidentialModule;
 
 public class MeteorStormStrategy implements ExternalObjectStrategy {
 
@@ -25,17 +22,11 @@ public class MeteorStormStrategy implements ExternalObjectStrategy {
     }
 
     public void apply(CommandCenter commandCenter, Module module) {
-        int damage;
-
-        if (module instanceof ResidentialModule) {
-            damage = RESIDENTIAL_DAMAGE;
-        } else if (module instanceof EnergyModule) {
-            damage = ENERGY_DAMAGE;
-        } else if (module instanceof ResearchModule) {
-            damage = RESEARCH_DAMAGE;
-        } else {
-            return;
-        }
+        int damage = switch (module.getCategory()) {
+            case RESIDENTIAL -> RESIDENTIAL_DAMAGE;
+            case ENERGY -> ENERGY_DAMAGE;
+            case RESEARCH -> RESEARCH_DAMAGE;
+        };
 
         int scaled = (int) Math.round(damage * strength);
         module.subtractDurability(

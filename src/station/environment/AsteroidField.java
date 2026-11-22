@@ -8,12 +8,10 @@ public class AsteroidField implements Environment {
     public static final double ENERGY_MODIFIER = 2.0;
     public static final double DAMAGE_MODIFIER = 1.2;
 
+    private final InteractionStrategy strategy = new AsteroidFieldStrategy();
+
+    @Override
     public void applyEffect(Module module) {
-        InteractionStrategy strategy = switch (module.getCategory()) {
-            case RESIDENTIAL -> new AsteroidFieldResidentialStrategy();
-            case ENERGY -> new AsteroidFieldEnergyStrategy();
-            case RESEARCH -> new AsteroidFieldResearchStrategy();
-        };
         strategy.apply(module);
     }
 
