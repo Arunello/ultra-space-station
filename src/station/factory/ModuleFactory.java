@@ -4,30 +4,21 @@ import station.modules.*;
 import station.modules.Module;
 
 public interface ModuleFactory {
-    Module createResidentialModule(
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    );
+    Module createResidentialModule(String state, Capacity capacity);
 
-    Module createEnergyModule(
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    );
+    Module createEnergyModule(String state, Capacity capacity);
 
-    Module createResearchModule(
-        String name,
-        int efficiency,
+    Module createResearchModule(String state, Capacity capacity);
+
+    default Module createModule(
+        Module.Category category,
         String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
         Capacity capacity
-    );
+    ) {
+        return switch (category) {
+            case RESIDENTIAL -> createResidentialModule(state, capacity);
+            case ENERGY -> createEnergyModule(state, capacity);
+            case RESEARCH -> createResearchModule(state, capacity);
+        };
+    }
 }

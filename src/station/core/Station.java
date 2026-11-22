@@ -3,6 +3,7 @@ package station.core;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import station.modules.Module;
 
 public class Station implements Iterable<Module> {
@@ -60,6 +61,8 @@ public class Station implements Iterable<Module> {
     }
 
     public void addModule(Module module) {
+        Objects.requireNonNull(module);
+
         if (modules.size() >= maxModules) {
             throw new IllegalStateException("Station is full");
         }

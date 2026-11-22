@@ -5,57 +5,18 @@ import station.modules.Module;
 
 public class StandardModuleFactory implements ModuleFactory {
 
-    public Module createResidentialModule(
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        return new CrewCabin(
-            name,
-            efficiency,
-            state,
-            durability,
-            energyConsumption,
-            capacity
-        );
+    @Override
+    public Module createResidentialModule(String state, Capacity capacity) {
+        return new CrewCabin(state, capacity);
     }
 
-    public Module createEnergyModule(
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        return new SolarModule(
-            name,
-            efficiency,
-            state,
-            durability,
-            energyConsumption,
-            capacity
-        );
+    @Override
+    public Module createEnergyModule(String state, Capacity capacity) {
+        return new SolarModule(state, capacity);
     }
 
-    public Module createResearchModule(
-        String name,
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        return new BiologyLab(
-            name,
-            efficiency,
-            state,
-            durability,
-            energyConsumption,
-            capacity
-        );
+    @Override
+    public Module createResearchModule(String state, Capacity capacity) {
+        return new BiologyLab(state, capacity);
     }
 }

@@ -39,47 +39,27 @@ public class Main {
 
         cabin = center.createModule(
             standardFactory,
-            "residential",
-            "Crew Cabin",
-            75,
-            new Durability(100),
-            new EnergyConsumption(10),
+            Module.Category.RESIDENTIAL,
             new Capacity(32)
         );
         solar = center.createModule(
             standardFactory,
-            "energy",
-            "Solar Module",
-            85,
-            new Durability(100),
-            new EnergyConsumption(0),
+            Module.Category.ENERGY,
             new Capacity(0)
         );
         reactor = center.createModule(
             advancedFactory,
-            "energy",
-            "Reactor",
-            95,
-            new Durability(100),
-            new EnergyConsumption(0),
+            Module.Category.ENERGY,
             new Capacity(0)
         );
         physics = center.createModule(
             advancedFactory,
-            "research",
-            "Physics Lab",
-            88,
-            new Durability(100),
-            new EnergyConsumption(60),
+            Module.Category.RESEARCH,
             new Capacity(4)
         );
         biology = center.createModule(
             standardFactory,
-            "research",
-            "Biology Lab",
-            80,
-            new Durability(100),
-            new EnergyConsumption(40),
+            Module.Category.RESEARCH,
             new Capacity(2)
         );
 

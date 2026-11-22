@@ -8,7 +8,7 @@ import station.modules.Module;
 public class SpaceAnomalyStrategy implements ExternalObjectStrategy {
 
     private static final int EFFECT_COUNT = 4;
-
+    private static final double EFFICIENCY_FACTOR = 0.5;
     private final Random random = new Random();
 
     public void apply(CommandCenter commandCenter, Module module) {
@@ -26,10 +26,12 @@ public class SpaceAnomalyStrategy implements ExternalObjectStrategy {
             case 2 -> {
                 int index = random.nextInt(commandCenter.getModuleCount());
                 commandCenter.teleportModule(module, index);
-                log("модуль " + module.getName() + " телепортирован на " + index);
+                log(
+                    "модуль " + module.getName() + " телепортирован на " + index
+                );
             }
             case 3 -> {
-                module.multiplyEfficiency(0.5);
+                module.multiplyEfficiency(EFFICIENCY_FACTOR);
                 log("эффективность " + module.getName() + " уменьшена вдвое");
             }
         }

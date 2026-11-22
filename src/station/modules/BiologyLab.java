@@ -2,23 +2,36 @@ package station.modules;
 
 public class BiologyLab extends ResearchModule {
 
-    private static final ModuleTypeInfo TYPE_INFO = new ModuleTypeInfo(100, 40, 80, 60);
+    private static final ModuleTypeInfo TYPE_INFO = new ModuleTypeInfo(
+        100,
+        40,
+        80,
+        60
+    );
 
-    public BiologyLab(
-        String name,
+    public BiologyLab(String state, Capacity capacity) {
+        super(
+            TYPE_INFO.getBaseEfficiency(),
+            state,
+            new Durability(TYPE_INFO.getMaxHealth()),
+            new EnergyConsumption(TYPE_INFO.getBaseEnergyConsumption()),
+            capacity
+        );
+    }
+
+    private BiologyLab(
         int efficiency,
         String state,
         Durability durability,
         EnergyConsumption energyConsumption,
         Capacity capacity
     ) {
-        super(name, efficiency, state, durability, energyConsumption, capacity);
+        super(efficiency, state, durability, energyConsumption, capacity);
     }
 
     @Override
     public BiologyLab clone() {
         return new BiologyLab(
-            getName(),
             getEfficiency(),
             getState(),
             getDurability().clone(),
@@ -33,7 +46,7 @@ public class BiologyLab extends ResearchModule {
     }
 
     @Override
-    public String getType() {
-        return "BiologyLab";
+    public Module.Type getType() {
+        return Module.Type.BIOLOGY_LAB;
     }
 }

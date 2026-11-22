@@ -1,18 +1,20 @@
 package station.modules;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import station.core.Station;
+import station.events.ModuleEvent;
 import station.events.ModuleEvents;
+import station.events.Observable;
 import station.events.Observer;
 import station.logging.LoggingProxy;
 
-public abstract class Module {
+public abstract class Module implements Observable {
 
     private static final int MIN_EFFICIENCY = 0;
     private static final int MAX_EFFICIENCY = 100;
 
-    private int id;
-    private String name;
+    private final int id;
     private int efficiency;
     private String state;
     private Durability durability;
@@ -25,22 +27,34 @@ public abstract class Module {
 
     private static int nextId = 0;
 
+    public enum Type {
+        CREW_CABIN,
+        MEDICAL_CABIN,
+        SOLAR_MODULE,
+        REACTOR_MODULE,
+        BIOLOGY_LAB,
+        PHYSICS_LAB,
+    }
+
+    public enum Category {
+        RESIDENTIAL,
+        ENERGY,
+        RESEARCH,
+    }
+
     public Module(
-        String name,
         int efficiency,
         String state,
         Durability durability,
         EnergyConsumption energyConsumption,
         Capacity capacity
     ) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be empty");
-        }
         if (efficiency < MIN_EFFICIENCY || efficiency > MAX_EFFICIENCY) {
             throw new IllegalArgumentException(
                 "Efficiency must be between MIN_EFFICIENCY and MAX_EFFICIENCY"
             );
         }
+
         if (
             !"включён".equals(state) &&
             !"выключен".equals(state) &&
@@ -49,26 +63,21 @@ public abstract class Module {
         ) {
             throw new IllegalArgumentException("Invalid state");
         }
-        if (
-            durability == null || energyConsumption == null || capacity == null
-        ) {
-            throw new IllegalArgumentException(
-                "Module attributes cannot be null"
-            );
-        }
+
+        this.durability = Objects.requireNonNull(durability);
+        this.energyConsumption = Objects.requireNonNull(energyConsumption);
+        this.capacity = Objects.requireNonNull(capacity);
 
         this.id = ++nextId;
-        this.name = name;
         this.efficiency = efficiency;
         this.state = state;
-        this.durability = durability;
-        this.energyConsumption = energyConsumption;
-        this.capacity = capacity;
     }
 
     public abstract Module clone();
 
-    public abstract String getType();
+    public abstract Module.Category getCategory();
+
+    public abstract Module.Type getType();
 
     public abstract ModuleTypeInfo getTypeInfo();
 
@@ -76,8 +85,8 @@ public abstract class Module {
         return id;
     }
 
-    public final String getName() {
-        return name;
+    public String getName() {
+        return getType().toString();
     }
 
     public final int getEfficiency() {
@@ -100,10 +109,6 @@ public abstract class Module {
         return capacity;
     }
 
-    public final boolean isActive() {
-        return "включён".equals(state);
-    }
-
     public final double getEnergyModifier() {
         return energyModifier;
     }
@@ -117,7 +122,7 @@ public abstract class Module {
     }
 
     public void activate() {
-        if (isActive()) {
+        if ("включён".equals(state)) {
             return;
         }
         setState("включён");
@@ -130,7 +135,11 @@ public abstract class Module {
     }
 
     public void deactivate() {
+        if ("выключен".equals(state)) {
+            return;
+        }
         setState("выключен");
+        notifyEvent(ModuleEvents.DEACTIVATED, 0, 0);
     }
 
     public void setState(String state) {
@@ -146,28 +155,30 @@ public abstract class Module {
     }
 
     public void setEnergyModifier(double modifier) {
+        if (!Double.isFinite(modifier) || modifier < 0) {
+            throw new IllegalArgumentException("Invalid energy modifier");
+        }
         this.energyModifier = modifier;
     }
 
+    @Override
     public void subscribe(Observer observer) {
         events.subscribe(observer);
     }
 
+    @Override
     public void unsubscribe(Observer observer) {
         events.unsubscribe(observer);
     }
 
+    @Override
+    public void notify(ModuleEvent event) {
+        events.notifyObservers(event);
+    }
+
     private void notifyEvent(String type, int damage, int amount) {
-        LoggingProxy.log(LoggingProxy.Source.MODULE, name + ": " + type);
-        events.notifyObservers(
-            new ModuleEvents.ModuleEvent(
-                type,
-                id,
-                damage,
-                amount,
-                LocalDateTime.now()
-            )
-        );
+        LoggingProxy.log(LoggingProxy.Source.MODULE, getName() + ": " + type);
+        notify(new ModuleEvent(type, id, damage, amount, LocalDateTime.now()));
     }
 
     public void subtractDurability(Damage damage) {
@@ -185,15 +196,26 @@ public abstract class Module {
     }
 
     public void multiplyEfficiency(double factor) {
+        if (!Double.isFinite(factor) || factor < 0) {
+            throw new IllegalArgumentException("Invalid efficiency factor");
+        }
+
         int result = (int) Math.round(efficiency * factor);
         efficiency = Math.min(MAX_EFFICIENCY, Math.max(MIN_EFFICIENCY, result));
     }
 
     public void chargeEnergy(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException(
+                "Energy amount cannot be negative"
+            );
+        }
         storedEnergy += amount;
     }
 
     public void transferEnergyTo(Module target, int amount) {
+        Objects.requireNonNull(target);
+
         if (amount < 0 || amount > storedEnergy) {
             throw new IllegalArgumentException("Not enough stored energy");
         }
@@ -201,11 +223,17 @@ public abstract class Module {
         target.storedEnergy += amount;
         LoggingProxy.log(
             LoggingProxy.Source.MODULE,
-            name + " передал " + amount + " энергии модулю " + target.name
+            getName() +
+                " передал " +
+                amount +
+                " энергии модулю " +
+                target.getName()
         );
     }
 
     public void moveToIndex(Station station, int index) {
+        Objects.requireNonNull(station);
+
         int fromIndex = 0;
 
         for (Module module : station) {

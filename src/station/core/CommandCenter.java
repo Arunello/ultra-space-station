@@ -3,6 +3,7 @@ package station.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import station.environment.*;
 import station.events.*;
 import station.factory.ModuleFactory;
@@ -94,54 +95,33 @@ public class CommandCenter implements Observer {
 
     public Module createModule(
         ModuleFactory factory,
-        String category,
-        String name,
-        int efficiency,
-        Durability durability,
-        EnergyConsumption energyConsumption,
+        Module.Category category,
         Capacity capacity
     ) {
+        Objects.requireNonNull(factory);
+        Objects.requireNonNull(category);
+
         String state = "выключен";
-        Module module = switch (category) {
-            case "residential" -> factory.createResidentialModule(
-                name,
-                efficiency,
-                state,
-                durability,
-                energyConsumption,
-                capacity
-            );
-            case "energy" -> factory.createEnergyModule(
-                name,
-                efficiency,
-                state,
-                durability,
-                energyConsumption,
-                capacity
-            );
-            case "research" -> factory.createResearchModule(
-                name,
-                efficiency,
-                state,
-                durability,
-                energyConsumption,
-                capacity
-            );
-            default -> throw new IllegalArgumentException(
-                "Unknown category: " + category
-            );
-        };
+
+        Module module = factory.createModule(category, state, capacity);
 
         int cost = module.getTypeInfo().getCost();
         if (energy < cost) {
-            throw new IllegalStateException("Not enough energy to build module");
+            throw new IllegalStateException(
+                "Not enough energy to build module"
+            );
         }
 
         addModule(module);
         energy -= cost;
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
-            "Создан " + module.getType() + " " + name + ", стоимость " + cost
+            "Создан " +
+                module.getType() +
+                " " +
+                module.getName() +
+                ", стоимость " +
+                cost
         );
         return module;
     }
@@ -155,22 +135,32 @@ public class CommandCenter implements Observer {
     }
 
     public void removeModule(Module module) {
+        Objects.requireNonNull(module);
+        checkModuleOwnership(module);
+
         station.removeById(module.getId());
         module.unsubscribe(this);
     }
 
     public void teleportModule(Module module, int index) {
+        Objects.requireNonNull(module);
+        checkModuleOwnership(module);
+
         if (station.getIndexById(module.getId()) >= 0) {
             module.moveToIndex(station, index);
         }
     }
 
     public void chargeModule(Module module, int amount) {
+        Objects.requireNonNull(module);
+        checkModuleOwnership(module);
+
         if (amount < 0 || amount > energy) {
             throw new IllegalStateException("Not enough energy to charge");
         }
-        energy -= amount;
+
         module.chargeEnergy(amount);
+        energy -= amount;
     }
 
     public void addResources(ResourcePackage resources) {
@@ -180,6 +170,9 @@ public class CommandCenter implements Observer {
     }
 
     public void addEnergy(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
         energy += amount;
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
@@ -188,6 +181,9 @@ public class CommandCenter implements Observer {
     }
 
     public void addOxygen(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
         oxygen += amount;
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
@@ -196,15 +192,23 @@ public class CommandCenter implements Observer {
     }
 
     public void addSafetyLevel(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
         safetyLevel += amount;
     }
 
     public int applySafety(int damage) {
+        if (damage < 0) {
+            throw new IllegalArgumentException("Damage cannot be negative");
+        }
         int percent = Math.min(safetyLevel, MAX_SAFETY_RESISTANCE);
-        return damage - damage * percent / 100;
+        return damage - (damage * percent) / 100;
     }
 
     public void setEnvironment(Environment environment) {
+        Objects.requireNonNull(environment);
+
         currentEnvironment = new EnvironmentProxy(environment);
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
@@ -216,14 +220,20 @@ public class CommandCenter implements Observer {
     }
 
     public void interactWith(ExternalObject object, Module module) {
+        Objects.requireNonNull(module);
+        Objects.requireNonNull(object);
+
+        checkModuleOwnership(module);
+
         object.interact(this, module);
     }
 
-    public void update(ModuleEvents.ModuleEvent event) {
+    @Override
+    public void update(ModuleEvent event) {
         onModuleEvent(event);
     }
 
-    public void onModuleEvent(ModuleEvents.ModuleEvent event) {
+    public void onModuleEvent(ModuleEvent event) {
         switch (event.type()) {
             case ModuleEvents.DAMAGED -> {
                 safetyLevel = Math.max(0, safetyLevel - DAMAGED_SAFETY_PENALTY);
@@ -238,7 +248,10 @@ public class CommandCenter implements Observer {
                 );
             }
             case ModuleEvents.DESTROYED -> {
-                safetyLevel = Math.max(0, safetyLevel - DESTROYED_SAFETY_PENALTY);
+                safetyLevel = Math.max(
+                    0,
+                    safetyLevel - DESTROYED_SAFETY_PENALTY
+                );
                 Module module = station.findById(event.moduleId());
                 if (module != null) {
                     removeModule(module);
@@ -257,10 +270,24 @@ public class CommandCenter implements Observer {
             case ModuleEvents.ACTIVATED -> {
                 Module module = station.findById(event.moduleId());
                 if (module instanceof ResidentialModule) {
-                    oxygen = Math.max(0, oxygen - module.getCapacity().getValue());
+                    oxygen = Math.max(
+                        0,
+                        oxygen - module.getCapacity().getValue()
+                    );
                 }
             }
-            default -> {}
+            default -> {
+            }
+        }
+    }
+
+    private void checkModuleOwnership(Module module) {
+        Objects.requireNonNull(module);
+
+        if (station.findById(module.getId()) != module) {
+            throw new IllegalArgumentException(
+                "Module does not belong to this station"
+            );
         }
     }
 }

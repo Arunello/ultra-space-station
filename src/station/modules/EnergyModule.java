@@ -2,14 +2,18 @@ package station.modules;
 
 public abstract class EnergyModule extends Module {
 
-    public EnergyModule(
-        String name,
+    protected EnergyModule(
         int efficiency,
         String state,
         Durability durability,
         EnergyConsumption energyConsumption,
         Capacity capacity
     ) {
-        super(name, efficiency, state, durability, energyConsumption, capacity);
+        super(efficiency, state, durability, energyConsumption, capacity);
+    }
+
+    @Override
+    public final Module.Category getCategory() {
+        return Module.Category.ENERGY;
     }
 }
