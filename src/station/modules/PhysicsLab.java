@@ -6,7 +6,8 @@ public class PhysicsLab extends ResearchModule {
         100,
         60,
         88,
-        70
+        70,
+        10
     );
 
     public PhysicsLab(String state, Capacity capacity) {
@@ -19,25 +20,13 @@ public class PhysicsLab extends ResearchModule {
         );
     }
 
-    private PhysicsLab(
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(efficiency, state, durability, energyConsumption, capacity);
+    private PhysicsLab(PhysicsLab other) {
+        super(other);
     }
 
     @Override
     public PhysicsLab clone() {
-        return new PhysicsLab(
-            getEfficiency(),
-            getState(),
-            getDurability().clone(),
-            getEnergyConsumption().clone(),
-            getCapacity().clone()
-        );
+        return new PhysicsLab(this);
     }
 
     @Override

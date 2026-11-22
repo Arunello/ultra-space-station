@@ -6,7 +6,8 @@ public class CrewCabin extends ResidentialModule {
         100,
         10,
         75,
-        30
+        30,
+        10
     );
 
     public CrewCabin(String state, Capacity capacity) {
@@ -19,25 +20,13 @@ public class CrewCabin extends ResidentialModule {
         );
     }
 
-    private CrewCabin(
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(efficiency, state, durability, energyConsumption, capacity);
+    private CrewCabin(CrewCabin other) {
+        super(other);
     }
 
     @Override
     public CrewCabin clone() {
-        return new CrewCabin(
-            getEfficiency(),
-            getState(),
-            getDurability().clone(),
-            getEnergyConsumption().clone(),
-            getCapacity().clone()
-        );
+        return new CrewCabin(this);
     }
 
     @Override

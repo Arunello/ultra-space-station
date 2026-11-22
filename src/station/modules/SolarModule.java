@@ -6,7 +6,8 @@ public class SolarModule extends EnergyModule {
         100,
         0,
         85,
-        40
+        40,
+        15
     );
 
     public SolarModule(String state, Capacity capacity) {
@@ -19,25 +20,13 @@ public class SolarModule extends EnergyModule {
         );
     }
 
-    private SolarModule(
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(efficiency, state, durability, energyConsumption, capacity);
+    private SolarModule(SolarModule other) {
+        super(other);
     }
 
     @Override
     public SolarModule clone() {
-        return new SolarModule(
-            getEfficiency(),
-            getState(),
-            getDurability().clone(),
-            getEnergyConsumption().clone(),
-            getCapacity().clone()
-        );
+        return new SolarModule(this);
     }
 
     @Override

@@ -28,14 +28,6 @@ public class EnvironmentProxy implements Environment {
             return;
         }
 
-        if (damageCache.containsKey(module.getId())) {
-            LoggingProxy.log(
-                LoggingProxy.Source.ENV,
-                prefix + " уже подвергся воздействию (кеш)"
-            );
-            return;
-        }
-
         if (module instanceof ResearchModule) {
             LoggingProxy.log(
                 LoggingProxy.Source.ENV,

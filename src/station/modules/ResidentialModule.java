@@ -12,6 +12,10 @@ public abstract class ResidentialModule extends Module {
         super(efficiency, state, durability, energyConsumption, capacity);
     }
 
+    protected ResidentialModule(ResidentialModule other) {
+        super(other);
+    }
+
     @Override
     public final Module.Category getCategory() {
         return Module.Category.RESIDENTIAL;

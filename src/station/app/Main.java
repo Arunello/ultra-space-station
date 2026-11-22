@@ -16,9 +16,7 @@ public class Main {
 
     private static Module cabin;
     private static Module solar;
-    private static Module reactor;
     private static Module physics;
-    private static Module biology;
 
     public static void main(String[] args) {
         CommandCenter center = new CommandCenter(6, 1000, 300, 50);
@@ -27,7 +25,6 @@ public class Main {
         scenario2(center);
         scenario3(center);
         scenario4(center);
-        scenario5(center);
     }
 
     private static void scenario1(CommandCenter center) {
@@ -47,7 +44,7 @@ public class Main {
             Module.Category.ENERGY,
             new Capacity(0)
         );
-        reactor = center.createModule(
+        center.createModule(
             advancedFactory,
             Module.Category.ENERGY,
             new Capacity(0)
@@ -57,7 +54,7 @@ public class Main {
             Module.Category.RESEARCH,
             new Capacity(4)
         );
-        biology = center.createModule(
+        center.createModule(
             standardFactory,
             Module.Category.RESEARCH,
             new Capacity(2)
@@ -82,19 +79,14 @@ public class Main {
     private static void scenario2(CommandCenter center) {
         title("Сценарий 2: DeepSpace, AsteroidField, Proxy и Observer");
 
-        System.out.println(
-            "Biology Lab в аварии: Proxy не пропустит воздействие."
-        );
-        biology.setState("авария");
         center.setEnvironment(new DeepSpace());
-        biology.setState("включён");
         System.out.println(
             "Коэффициент энергопотребления Physics Lab: x" +
                 physics.getEnergyModifier()
         );
 
         System.out.println(
-            "\nПовторное применение того же окружения берётся из кеша:"
+            "\nПовторное воздействие DeepSpace:"
         );
         center.getCurrentEnvironment().applyEffect(physics);
 
@@ -106,31 +98,21 @@ public class Main {
             "Кеш Proxy: урон Solar Module = " +
                 center.getCurrentEnvironment().getCachedDamage(solar.getId())
         );
-        printAll(center);
+        physics.activate();
+        System.out.println("После попытки включения: " + physics.getState());
 
         System.out.println("\nВозврат на EarthOrbit и повторное включение:");
         center.setEnvironment(new EarthOrbit());
-        for (Module module : center.getModules()) {
-            module.activate();
-        }
+        physics.activate();
+        System.out.println("После включения на орбите: " + physics.getState());
         printAll(center);
     }
 
     private static void scenario3(CommandCenter center) {
-        title("Сценарий 3: солнечная буря и метеоритный поток");
-
-        SolarStorm storm = new SolarStorm(1.5);
-        for (Module module : center.getModules()) {
-            center.interactWith(storm, module);
-        }
-        printAll(center);
-
-        System.out.println(
-            "\nМетеоритный поток бьёт по ослабленной Biology Lab:"
-        );
-        biology.getDurability().setValue(8);
-        center.interactWith(new MeteorStorm(), biology);
-        printAll(center);
+        title("Сценарий 3: солнечная буря");
+        center.interactWith(new SolarStorm(1.5), solar);
+        printModule(solar);
+        System.out.println(center.getStatistics());
     }
 
     private static void scenario4(CommandCenter center) {
@@ -139,19 +121,6 @@ public class Main {
         System.out.println("До: " + center.getStatistics());
         center.interactWith(new CargoContainer(), cabin);
         System.out.println("После: " + center.getStatistics());
-    }
-
-    private static void scenario5(CommandCenter center) {
-        title("Сценарий 5: космическая аномалия");
-
-        SpaceAnomaly anomaly = new SpaceAnomaly();
-        for (int i = 0; i < 6; i++) {
-            Module target = center
-                .getModules()
-                .get(i % center.getModuleCount());
-            center.interactWith(anomaly, target);
-        }
-        printAll(center);
     }
 
     private static void title(String text) {

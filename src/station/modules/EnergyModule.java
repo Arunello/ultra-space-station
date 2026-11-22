@@ -12,6 +12,10 @@ public abstract class EnergyModule extends Module {
         super(efficiency, state, durability, energyConsumption, capacity);
     }
 
+    protected EnergyModule(EnergyModule other) {
+        super(other);
+    }
+
     @Override
     public final Module.Category getCategory() {
         return Module.Category.ENERGY;

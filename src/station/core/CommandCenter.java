@@ -229,13 +229,9 @@ public class CommandCenter implements Observer {
     }
 
     @Override
-    public void update(ModuleEvent event) {
-        onModuleEvent(event);
-    }
-
     public void onModuleEvent(ModuleEvent event) {
         switch (event.type()) {
-            case ModuleEvents.DAMAGED -> {
+            case ModuleEvent.DAMAGED -> {
                 safetyLevel = Math.max(0, safetyLevel - DAMAGED_SAFETY_PENALTY);
                 LoggingProxy.log(
                     LoggingProxy.Source.CENTER,
@@ -247,7 +243,7 @@ public class CommandCenter implements Observer {
                         safetyLevel
                 );
             }
-            case ModuleEvents.DESTROYED -> {
+            case ModuleEvent.DESTROYED -> {
                 safetyLevel = Math.max(
                     0,
                     safetyLevel - DESTROYED_SAFETY_PENALTY
@@ -264,10 +260,10 @@ public class CommandCenter implements Observer {
                         safetyLevel
                 );
             }
-            case ModuleEvents.ENERGY_CONSUMED -> {
+            case ModuleEvent.ENERGY_CONSUMED -> {
                 energy = Math.max(0, energy - event.amount());
             }
-            case ModuleEvents.ACTIVATED -> {
+            case ModuleEvent.ACTIVATED -> {
                 Module module = station.findById(event.moduleId());
                 if (module instanceof ResidentialModule) {
                     oxygen = Math.max(

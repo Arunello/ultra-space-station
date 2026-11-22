@@ -73,6 +73,18 @@ public abstract class Module implements Observable {
         this.state = state;
     }
 
+    protected Module(Module other) {
+        this(
+            other.efficiency,
+            other.state,
+            other.durability.clone(),
+            other.energyConsumption.clone(),
+            other.capacity.clone()
+        );
+        this.energyModifier = other.energyModifier;
+        this.storedEnergy = other.storedEnergy;
+    }
+
     public abstract Module clone();
 
     public abstract Module.Category getCategory();
@@ -122,27 +134,27 @@ public abstract class Module implements Observable {
     }
 
     public void activate() {
-        if ("включён".equals(state)) {
+        if ("авария".equals(state) || "включён".equals(state)) {
             return;
         }
         setState("включён");
-        notifyEvent(ModuleEvents.ACTIVATED, 0, 0);
+        notifyEvent(ModuleEvent.ACTIVATED, 0, 0);
         notifyEvent(
-            ModuleEvents.ENERGY_CONSUMED,
+            ModuleEvent.ENERGY_CONSUMED,
             0,
             getEffectiveEnergyConsumption()
         );
     }
 
     public void deactivate() {
-        if ("выключен".equals(state)) {
+        if ("авария".equals(state) || "выключен".equals(state)) {
             return;
         }
         setState("выключен");
-        notifyEvent(ModuleEvents.DEACTIVATED, 0, 0);
+        notifyEvent(ModuleEvent.DEACTIVATED, 0, 0);
     }
 
-    public void setState(String state) {
+    private void setState(String state) {
         if (
             !"включён".equals(state) &&
             !"выключен".equals(state) &&
@@ -187,11 +199,11 @@ public abstract class Module implements Observable {
             return;
         }
         durability.decrease(lost);
-        notifyEvent(ModuleEvents.DAMAGED, lost, 0);
+        notifyEvent(ModuleEvent.DAMAGED, lost, 0);
 
         if (durability.getValue() == 0) {
             setState("авария");
-            notifyEvent(ModuleEvents.DESTROYED, lost, 0);
+            notifyEvent(ModuleEvent.DESTROYED, lost, 0);
         }
     }
 

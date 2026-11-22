@@ -6,7 +6,8 @@ public class MedicalCabin extends ResidentialModule {
         100,
         15,
         85,
-        50
+        50,
+        8
     );
 
     public MedicalCabin(String state, Capacity capacity) {
@@ -19,25 +20,13 @@ public class MedicalCabin extends ResidentialModule {
         );
     }
 
-    private MedicalCabin(
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(efficiency, state, durability, energyConsumption, capacity);
+    private MedicalCabin(MedicalCabin other) {
+        super(other);
     }
 
     @Override
     public MedicalCabin clone() {
-        return new MedicalCabin(
-            getEfficiency(),
-            getState(),
-            getDurability().clone(),
-            getEnergyConsumption().clone(),
-            getCapacity().clone()
-        );
+        return new MedicalCabin(this);
     }
 
     @Override

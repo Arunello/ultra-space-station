@@ -6,7 +6,8 @@ public class ReactorModule extends EnergyModule {
         100,
         0,
         95,
-        80
+        80,
+        8
     );
 
     public ReactorModule(String state, Capacity capacity) {
@@ -19,25 +20,13 @@ public class ReactorModule extends EnergyModule {
         );
     }
 
-    private ReactorModule(
-        int efficiency,
-        String state,
-        Durability durability,
-        EnergyConsumption energyConsumption,
-        Capacity capacity
-    ) {
-        super(efficiency, state, durability, energyConsumption, capacity);
+    private ReactorModule(ReactorModule other) {
+        super(other);
     }
 
     @Override
     public ReactorModule clone() {
-        return new ReactorModule(
-            getEfficiency(),
-            getState(),
-            getDurability().clone(),
-            getEnergyConsumption().clone(),
-            getCapacity().clone()
-        );
+        return new ReactorModule(this);
     }
 
     @Override
