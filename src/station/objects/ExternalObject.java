@@ -39,11 +39,11 @@ public abstract class ExternalObject {
         return strength;
     }
 
-    public void interact(CommandCenter commandCenter, Module module) {
+    public String interact(CommandCenter commandCenter, Module module) {
         LoggingProxy.log(
             LoggingProxy.Source.OBJECT,
             logName + " воздействует на " + module.getName()
         );
-        strategy.apply(commandCenter, module);
+        return strategy.apply(commandCenter, module);
     }
 }

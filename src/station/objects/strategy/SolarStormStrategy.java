@@ -21,7 +21,7 @@ public class SolarStormStrategy implements ExternalObjectStrategy {
         this.strength = strength;
     }
 
-    public void apply(CommandCenter commandCenter, Module module) {
+    public String apply(CommandCenter commandCenter, Module module) {
         int damage = switch (module.getCategory()) {
             case RESIDENTIAL -> RESIDENTIAL_DAMAGE;
             case ENERGY -> ENERGY_DAMAGE;
@@ -29,11 +29,19 @@ public class SolarStormStrategy implements ExternalObjectStrategy {
         };
 
         int scaled = (int) Math.round(damage * strength);
-        module.subtractDurability(
-            new Damage(commandCenter.applySafety(scaled), DAMAGE_TYPE)
-        );
+        int before = module.getDurability().getValue();
+        int incoming = commandCenter.applySafety(scaled);
+        module.subtractDurability(new Damage(incoming, DAMAGE_TYPE));
+        boolean active = "включён".equals(module.getState());
         if (module.getCategory() == Module.Category.ENERGY) {
             module.deactivate();
         }
+        int health = module.getDurability().getValue();
+        String result = "Солнечная буря: защита поглотила %d из %d урона. «%s»: урон %d"
+            .formatted(scaled - incoming, scaled, module.getName(), before - health);
+        if (health == 0) return result + ", модуль уничтожен.";
+        result += ", осталось прочности " + health + "/" + module.getTypeInfo().getMaxHealth() + ".";
+        if (active && "выключен".equals(module.getState())) result += " Модуль отключён.";
+        return result;
     }
 }

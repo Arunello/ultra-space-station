@@ -38,4 +38,8 @@ public class BiologyLab extends ResearchModule {
     public Module.Type getType() {
         return Module.Type.BIOLOGY_LAB;
     }
+    @Override
+    protected String describeFindings(boolean discovery) {
+        return discovery ? "обнаружен новый микроорганизм" : "получены данные о росте культуры";
+    }
 }

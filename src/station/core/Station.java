@@ -48,6 +48,12 @@ public class Station implements Iterable<Module> {
         }
     }
 
+    public Module getModuleByIndex(int index) {
+        if (modules.isEmpty()) throw new IllegalArgumentException("На станции пока нет модулей.");
+        if (index < 0 || index >= modules.size()) throw new IllegalArgumentException("Нет модуля с номером " + index + ". Посмотрите список командой status.");
+        return modules.get(index);
+    }
+
     public int size() {
         return modules.size();
     }
@@ -64,7 +70,7 @@ public class Station implements Iterable<Module> {
         Objects.requireNonNull(module);
 
         if (modules.size() >= maxModules) {
-            throw new IllegalStateException("Station is full");
+            throw new IllegalStateException("Все места на станции заняты");
         }
         for (Module m : modules) {
             if (m.getId() == module.getId()) {

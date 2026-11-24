@@ -18,11 +18,13 @@ public class CommandCenter implements Observer {
     private static final int DAMAGED_SAFETY_PENALTY = 1;
     private static final int DESTROYED_SAFETY_PENALTY = 5;
 
-    private int energy;
+    private final EnergySystem power;
+    private final StationMediator mediator;
     private int oxygen;
+    private int completedShifts;
     private int safetyLevel;
     private final Station station;
-    private EnvironmentProxy currentEnvironment;
+    private final EnvironmentSystem environment = new EnvironmentSystem();
 
     public CommandCenter(
         int maxModules,
@@ -34,13 +36,14 @@ public class CommandCenter implements Observer {
             throw new IllegalArgumentException("Negative station parameter");
         }
         this.station = new Station(maxModules);
-        this.energy = energy;
+        this.power = new EnergySystem(energy);
+        this.mediator = new StationMediator(this);
         this.oxygen = oxygen;
         this.safetyLevel = safetyLevel;
     }
 
     public int getEnergy() {
-        return energy;
+        return power.getAvailable();
     }
 
     public int getOxygen() {
@@ -60,7 +63,7 @@ public class CommandCenter implements Observer {
     }
 
     public EnvironmentProxy getCurrentEnvironment() {
-        return currentEnvironment;
+        return environment.getCurrent();
     }
 
     public List<Module> getModules() {
@@ -73,13 +76,13 @@ public class CommandCenter implements Observer {
 
     public String getStatistics() {
         String environmentName = "нет";
-        if (currentEnvironment != null) {
-            environmentName = currentEnvironment.getName();
+        if (getCurrentEnvironment() != null) {
+            environmentName = getCurrentEnvironment().getName();
         }
 
         return (
             "Энергия: " +
-            energy +
+            getEnergy() +
             " | Кислород: " +
             oxygen +
             " | Безопасность: " +
@@ -98,6 +101,15 @@ public class CommandCenter implements Observer {
         Module.Category category,
         Capacity capacity
     ) {
+        return createModule(factory, category, capacity, null);
+    }
+
+    public Module createModule(
+        ModuleFactory factory,
+        Module.Category category,
+        Capacity capacity,
+        String name
+    ) {
         Objects.requireNonNull(factory);
         Objects.requireNonNull(category);
 
@@ -105,15 +117,16 @@ public class CommandCenter implements Observer {
 
         Module module = factory.createModule(category, state, capacity);
 
+        if (name != null) module.setName(name);
         int cost = module.getTypeInfo().getCost();
-        if (energy < cost) {
+        if (getEnergy() < cost) {
             throw new IllegalStateException(
-                "Not enough energy to build module"
+                "Для строительства нужно " + cost + " энергии, доступно " + getEnergy()
             );
         }
 
         addModule(module);
-        energy -= cost;
+        power.spend(cost);
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
             "Создан " +
@@ -127,11 +140,13 @@ public class CommandCenter implements Observer {
     }
 
     public void addModule(Module module) {
+        if (module.getMediator() != null) throw new IllegalStateException(
+            "Модуль уже на станции"
+        );
         station.addModule(module);
-        module.subscribe(this);
-        if (currentEnvironment != null) {
-            currentEnvironment.applyEffect(module);
-        }
+        module.attach(mediator);
+        module.subscribe(mediator);
+        environment.applyEffect(module);
     }
 
     public void removeModule(Module module) {
@@ -139,7 +154,8 @@ public class CommandCenter implements Observer {
         checkModuleOwnership(module);
 
         station.removeById(module.getId());
-        module.unsubscribe(this);
+        module.unsubscribe(mediator);
+        module.detach(mediator);
     }
 
     public void teleportModule(Module module, int index) {
@@ -155,12 +171,12 @@ public class CommandCenter implements Observer {
         Objects.requireNonNull(module);
         checkModuleOwnership(module);
 
-        if (amount < 0 || amount > energy) {
+        if (amount < 0 || amount > getEnergy()) {
             throw new IllegalStateException("Not enough energy to charge");
         }
 
         module.chargeEnergy(amount);
-        energy -= amount;
+        power.spend(amount);
     }
 
     public void addResources(ResourcePackage resources) {
@@ -173,10 +189,10 @@ public class CommandCenter implements Observer {
         if (amount < 0) {
             throw new IllegalArgumentException("Amount cannot be negative");
         }
-        energy += amount;
+        power.add(amount);
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
-            "+" + amount + " энергии, всего " + energy
+            "+" + amount + " энергии, всего " + getEnergy()
         );
     }
 
@@ -202,30 +218,37 @@ public class CommandCenter implements Observer {
         if (damage < 0) {
             throw new IllegalArgumentException("Damage cannot be negative");
         }
-        int percent = Math.min(safetyLevel, MAX_SAFETY_RESISTANCE);
-        return damage - (damage * percent) / 100;
+        return damage - (int) ((long) damage * getProtectionPercent() / 100);
+    }
+
+    public int getProtectionPercent() {
+        return Math.min(safetyLevel, MAX_SAFETY_RESISTANCE);
     }
 
     public void setEnvironment(Environment environment) {
         Objects.requireNonNull(environment);
 
-        currentEnvironment = new EnvironmentProxy(environment);
+        this.environment.change(environment);
         LoggingProxy.log(
             LoggingProxy.Source.CENTER,
-            "Окружение: " + currentEnvironment.getName()
+            "Окружение: " + getCurrentEnvironment().getName()
         );
+        applyEnvironment();
+    }
+
+    private void applyEnvironment() {
         for (Module module : getModules()) {
-            currentEnvironment.applyEffect(module);
+            environment.applyEffect(module);
         }
     }
 
-    public void interactWith(ExternalObject object, Module module) {
+    public String interactWith(ExternalObject object, Module module) {
         Objects.requireNonNull(module);
         Objects.requireNonNull(object);
 
         checkModuleOwnership(module);
 
-        object.interact(this, module);
+        return object.interact(this, module);
     }
 
     @Override
@@ -260,21 +283,79 @@ public class CommandCenter implements Observer {
                         safetyLevel
                 );
             }
-            case ModuleEvent.ENERGY_CONSUMED -> {
-                energy = Math.max(0, energy - event.amount());
-            }
-            case ModuleEvent.ACTIVATED -> {
-                Module module = station.findById(event.moduleId());
-                if (module instanceof ResidentialModule) {
-                    oxygen = Math.max(
-                        0,
-                        oxygen - module.getCapacity().getValue()
-                    );
-                }
-            }
             default -> {
             }
         }
+    }
+
+    public int getCompletedShifts() {
+        return completedShifts;
+    }
+
+    void advanceEnvironment() {
+        applyEnvironment();
+        completedShifts++;
+    }
+
+    void spendOxygen(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Отрицательный расход кислорода");
+        if (oxygen < amount) throw new IllegalStateException("Недостаточно кислорода");
+        oxygen -= amount;
+    }
+
+    public StationMediator getMediator() {
+        return mediator;
+    }
+
+    public Module getModuleByIndex(int index) {
+        return station.getModuleByIndex(index);
+    }
+
+    void spendEnergy(int amount) {
+        power.spend(amount);
+    }
+
+    public record Snapshot(
+        int energy,
+        int oxygen,
+        int safety,
+        int completedShifts,
+        List<Module> order,
+        List<Module.State> states,
+        EnvironmentProxy environment,
+        java.util.Map<Integer, Integer> damageCache
+    ) {}
+
+    public Snapshot snapshot() {
+        var order = getModules();
+        var proxy = getCurrentEnvironment();
+        return new Snapshot(
+            getEnergy(),
+            oxygen,
+            safetyLevel,
+            completedShifts,
+            order,
+            order.stream().map(Module::saveState).toList(),
+            proxy,
+            proxy == null ? java.util.Map.of() : proxy.copyCache()
+        );
+    }
+
+    public void restore(Snapshot snapshot) {
+        for (Module module : getModules()) removeModule(module);
+        power.restore(snapshot.energy());
+        oxygen = snapshot.oxygen();
+        completedShifts = snapshot.completedShifts();
+        safetyLevel = snapshot.safety();
+        for (int i = 0; i < snapshot.order().size(); i++) {
+            Module module = snapshot.order().get(i);
+            module.restoreState(snapshot.states().get(i));
+            station.addModule(module);
+            module.attach(mediator);
+            module.subscribe(mediator);
+        }
+        environment.restore(snapshot.environment());
+        if (snapshot.environment() != null) snapshot.environment().restoreCache(snapshot.damageCache());
     }
 
     private void checkModuleOwnership(Module module) {

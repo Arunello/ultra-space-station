@@ -20,13 +20,18 @@ public class CargoContainerStrategy implements ExternalObjectStrategy {
         this.strength = strength;
     }
 
-    public void apply(CommandCenter commandCenter, Module module) {
-        commandCenter.addResources(
-            new ResourcePackage(
+    public String apply(CommandCenter commandCenter, Module module) {
+        return deliver(commandCenter);
+    }
+
+    public String deliver(CommandCenter commandCenter) {
+        ResourcePackage resources = new ResourcePackage(
                 (int) Math.round(ENERGY_BONUS * strength),
                 (int) Math.round(OXYGEN_BONUS * strength),
                 (int) Math.round(SAFETY_BONUS * strength)
-            )
         );
+        commandCenter.addResources(resources);
+        return "Груз принят. Энергия +%d, кислород +%d, безопасность +%d.".formatted(
+            resources.energy(), resources.oxygen(), resources.safetyLevel());
     }
 }

@@ -11,6 +11,7 @@ public final class LoggingProxy {
         OBJECT,
         MODULE,
         CENTER,
+        USER,
     }
 
     private static final List<String> history = new ArrayList<>();
@@ -20,7 +21,6 @@ public final class LoggingProxy {
     public static void log(Source source, String message) {
         String line = "[" + source + "] " + message;
         history.add(line);
-        System.out.println(line);
     }
 
     public static List<String> getHistory() {

@@ -16,7 +16,7 @@ public class EarthOrbit implements Environment {
     }
 
     public String getName() {
-        return "EarthOrbit";
+        return "Земная орбита";
     }
 
     public double getEnergyModifier() {

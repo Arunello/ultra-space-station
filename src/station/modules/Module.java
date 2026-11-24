@@ -3,6 +3,7 @@ package station.modules;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import station.core.Station;
+import station.core.StationMediator;
 import station.events.ModuleEvent;
 import station.events.ModuleEvents;
 import station.events.Observable;
@@ -15,6 +16,8 @@ public abstract class Module implements Observable {
     private static final int MAX_EFFICIENCY = 100;
 
     private final int id;
+    private String name;
+    private StationMediator mediator;
     private int efficiency;
     private String state;
     private Durability durability;
@@ -81,11 +84,86 @@ public abstract class Module implements Observable {
             other.energyConsumption.clone(),
             other.capacity.clone()
         );
+        this.name = other.name;
         this.energyModifier = other.energyModifier;
         this.storedEnergy = other.storedEnergy;
     }
 
     public abstract Module clone();
+
+    public Module deepCopy() {
+        return clone();
+    }
+
+    public void setName(String name) {
+        if (name == null || name.isBlank()) throw new IllegalArgumentException(
+            "Пустое имя"
+        );
+        this.name = name;
+    }
+
+    public StationMediator getMediator() {
+        return mediator;
+    }
+
+    public void attach(StationMediator owner) {
+        if (mediator != null) throw new IllegalStateException(
+            "Модуль уже на станции"
+        );
+        mediator = Objects.requireNonNull(owner);
+    }
+
+    public void detach(StationMediator owner) {
+        if (mediator != owner) throw new IllegalStateException("Чужая станция");
+        mediator = null;
+    }
+
+    public record State(
+        String name,
+        String state,
+        int efficiency,
+        int health,
+        int consumption,
+        int capacity,
+        double modifier,
+        int charge,
+        boolean blocked
+    ) {}
+
+    public State saveState() {
+        return new State(
+            name,
+            state,
+            efficiency,
+            durability.getValue(),
+            energyConsumption.getValue(),
+            capacity.getValue(),
+            energyModifier,
+            storedEnergy,
+            this instanceof ResearchModule lab && lab.isActivationBlocked()
+        );
+    }
+
+    public void restoreState(State saved) {
+        name = saved.name();
+        state = saved.state();
+        efficiency = saved.efficiency();
+        durability.setValue(saved.health());
+        energyConsumption.setValue(saved.consumption());
+        capacity.setValue(saved.capacity());
+        energyModifier = saved.modifier();
+        storedEnergy = saved.charge();
+        if (this instanceof ResearchModule lab) lab.setActivationBlocked(
+            saved.blocked()
+        );
+    }
+
+    public void consumeCharge(int amount) {
+        if (
+            amount < 0 || amount > storedEnergy
+        ) throw new IllegalArgumentException("Недостаточно заряда");
+        storedEnergy -= amount;
+    }
 
     public abstract Module.Category getCategory();
 
@@ -98,11 +176,15 @@ public abstract class Module implements Observable {
     }
 
     public String getName() {
-        return getType().toString();
+        return name == null ? getType().toString() : name;
     }
 
     public final int getEfficiency() {
         return efficiency;
+    }
+
+    public final int getWorkingEfficiency() {
+        return (int) Math.round((double) efficiency * durability.getValue() / getTypeInfo().getMaxHealth());
     }
 
     public final String getState() {
@@ -133,17 +215,22 @@ public abstract class Module implements Observable {
         return (int) Math.round(energyConsumption.getValue() * energyModifier);
     }
 
+    public int getShiftEnergyConsumption() {
+        return getEffectiveEnergyConsumption();
+    }
+
     public void activate() {
         if ("авария".equals(state) || "включён".equals(state)) {
             return;
         }
         setState("включён");
         notifyEvent(ModuleEvent.ACTIVATED, 0, 0);
-        notifyEvent(
-            ModuleEvent.ENERGY_CONSUMED,
-            0,
-            getEffectiveEnergyConsumption()
-        );
+    }
+
+    public void reportEnergyConsumed(int amount) {
+        if (amount > 0) {
+            notifyEvent(ModuleEvent.ENERGY_CONSUMED, 0, amount);
+        }
     }
 
     public void deactivate() {
@@ -189,7 +276,8 @@ public abstract class Module implements Observable {
     }
 
     private void notifyEvent(String type, int damage, int amount) {
-        LoggingProxy.log(LoggingProxy.Source.MODULE, getName() + ": " + type);
+        String details = amount > 0 ? " (" + amount + ")" : "";
+        LoggingProxy.log(LoggingProxy.Source.MODULE, getName() + ": " + type + details);
         notify(new ModuleEvent(type, id, damage, amount, LocalDateTime.now()));
     }
 
@@ -226,21 +314,10 @@ public abstract class Module implements Observable {
     }
 
     public void transferEnergyTo(Module target, int amount) {
-        Objects.requireNonNull(target);
-
-        if (amount < 0 || amount > storedEnergy) {
-            throw new IllegalArgumentException("Not enough stored energy");
-        }
-        storedEnergy -= amount;
-        target.storedEnergy += amount;
-        LoggingProxy.log(
-            LoggingProxy.Source.MODULE,
-            getName() +
-                " передал " +
-                amount +
-                " энергии модулю " +
-                target.getName()
+        if (mediator == null) throw new IllegalStateException(
+            "Модуль вне станции"
         );
+        mediator.transferEnergy(this, target, amount);
     }
 
     public void moveToIndex(Station station, int index) {

@@ -1,0 +1,6 @@
+Версия Java — 21. Для сборки нужен JDK 21 или новее.
+
+Команды из корня проекта
+
+  javac --release 21 -d out $(find src -name '*.java')
+  java -cp out station.app.Main

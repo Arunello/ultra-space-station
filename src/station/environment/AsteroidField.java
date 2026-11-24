@@ -16,7 +16,7 @@ public class AsteroidField implements Environment {
     }
 
     public String getName() {
-        return "AsteroidField";
+        return "Поле астероидов";
     }
 
     public double getEnergyModifier() {

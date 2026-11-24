@@ -7,37 +7,41 @@ import station.modules.Module;
 
 public class SpaceAnomalyStrategy implements ExternalObjectStrategy {
 
+    private static final int DOUBLE_ENERGY = 1;
     private static final int EFFECT_COUNT = 4;
     private static final double EFFICIENCY_FACTOR = 0.5;
     private final Random random = new Random();
 
-    public void apply(CommandCenter commandCenter, Module module) {
+    public String apply(CommandCenter commandCenter, Module module) {
         int effect = random.nextInt(EFFECT_COUNT);
 
-        switch (effect) {
+        if (effect != DOUBLE_ENERGY && random.nextInt(100) < commandCenter.getProtectionPercent()) {
+            String message = "Защита станции нейтрализовала аномалию у модуля «" + module.getName() + "».";
+            LoggingProxy.log(LoggingProxy.Source.OBJECT, message);
+            return message;
+        }
+
+        String result = switch (effect) {
             case 0 -> {
                 module.deactivate();
-                log("модуль " + module.getName() + " отключён");
+                yield "Отключение модуля «" + module.getName() + "». Состояние: " + module.getState();
             }
-            case 1 -> {
+            case DOUBLE_ENERGY -> {
                 commandCenter.addEnergy(commandCenter.getEnergy());
-                log("энергия станции удвоена");
+                yield "Запас энергии удвоен до " + commandCenter.getEnergy();
             }
             case 2 -> {
                 int index = random.nextInt(commandCenter.getModuleCount());
                 commandCenter.teleportModule(module, index);
-                log(
-                    "модуль " + module.getName() + " телепортирован на " + index
-                );
+                yield "Телепортация модуля «" + module.getName() + "» на позицию " + index;
             }
-            case 3 -> {
+            default -> {
                 module.multiplyEfficiency(EFFICIENCY_FACTOR);
-                log("эффективность " + module.getName() + " уменьшена вдвое");
+                yield "Эффективность модуля «" + module.getName() + "» снижена до " + module.getEfficiency() + "%";
             }
-        }
-    }
-
-    private void log(String message) {
-        LoggingProxy.log(LoggingProxy.Source.OBJECT, "Аномалия: " + message);
+        };
+        String message = "Аномалия. " + result + ".";
+        LoggingProxy.log(LoggingProxy.Source.OBJECT, message);
+        return message;
     }
 }

@@ -38,4 +38,8 @@ public class PhysicsLab extends ResearchModule {
     public Module.Type getType() {
         return Module.Type.PHYSICS_LAB;
     }
+    @Override
+    protected String describeFindings(boolean discovery) {
+        return discovery ? "обнаружен новый спектральный сигнал" : "получен спектр излучения";
+    }
 }

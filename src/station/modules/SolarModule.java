@@ -2,6 +2,8 @@ package station.modules;
 
 public class SolarModule extends EnergyModule {
 
+    private static final int MAX_OUTPUT_PER_SHIFT = 40;
+
     private static final ModuleTypeInfo TYPE_INFO = new ModuleTypeInfo(
         100,
         0,
@@ -18,6 +20,11 @@ public class SolarModule extends EnergyModule {
             new EnergyConsumption(TYPE_INFO.getBaseEnergyConsumption()),
             capacity
         );
+    }
+
+    @Override
+    public int getOutputPerShift() {
+        return (int) Math.round(MAX_OUTPUT_PER_SHIFT * getWorkingEfficiency() / (100.0 * getEnergyModifier()));
     }
 
     private SolarModule(SolarModule other) {

@@ -2,6 +2,8 @@ package station.modules;
 
 public class ReactorModule extends EnergyModule {
 
+    private static final int MAX_OUTPUT_PER_SHIFT = 60;
+
     private static final ModuleTypeInfo TYPE_INFO = new ModuleTypeInfo(
         100,
         0,
@@ -22,6 +24,11 @@ public class ReactorModule extends EnergyModule {
 
     private ReactorModule(ReactorModule other) {
         super(other);
+    }
+
+    @Override
+    public int getOutputPerShift() {
+        return (int) Math.round(MAX_OUTPUT_PER_SHIFT * getWorkingEfficiency() / 100.0);
     }
 
     @Override

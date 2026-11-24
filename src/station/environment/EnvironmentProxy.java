@@ -40,10 +40,18 @@ public class EnvironmentProxy implements Environment {
         int lost = before - module.getDurability().getValue();
 
         damageCache.put(module.getId(), lost);
-        LoggingProxy.log(
-            LoggingProxy.Source.ENV,
-            prefix + " потерял прочности: " + lost
-        );
+        if (lost > 0) {
+            LoggingProxy.log(LoggingProxy.Source.ENV, prefix + ", потеря прочности: " + lost);
+        }
+    }
+
+    public Map<Integer, Integer> copyCache() {
+        return Map.copyOf(damageCache);
+    }
+
+    public void restoreCache(Map<Integer, Integer> saved) {
+        damageCache.clear();
+        damageCache.putAll(saved);
     }
 
     public int getCachedDamage(int moduleId) {

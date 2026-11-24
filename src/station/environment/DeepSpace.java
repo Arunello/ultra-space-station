@@ -16,7 +16,7 @@ public class DeepSpace implements Environment {
     }
 
     public String getName() {
-        return "DeepSpace";
+        return "Дальний космос";
     }
 
     public double getEnergyModifier() {

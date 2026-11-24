@@ -16,6 +16,8 @@ public abstract class EnergyModule extends Module {
         super(other);
     }
 
+    public abstract int getOutputPerShift();
+
     @Override
     public final Module.Category getCategory() {
         return Module.Category.ENERGY;
